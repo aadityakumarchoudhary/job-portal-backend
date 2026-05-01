@@ -1,6 +1,7 @@
 import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import cloudinary from "../utils/cloudinary.js";
 
 export const register = async (req, res) => {
   try {
@@ -100,6 +101,13 @@ export const updateProfile = async (req, res) => {
 
     if (!user) {
       return res.status(400).json({ message: "User not found", success: false });
+    }
+
+    // ✅ Handle profile photo upload to Cloudinary
+    if (req.file) {
+      const fileUri = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+      const cloudResponse = await cloudinary.uploader.upload(fileUri);
+      user.profile.profilePhoto = cloudResponse.secure_url;
     }
 
     if (fullname) user.fullname = fullname;
